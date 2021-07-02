@@ -86,28 +86,8 @@ public class LoginPage {
         } catch (Exception e) {
             System.out.println(e);
 
-
-           /* takescreenshot(driver, filepath);
-            attachscreenshot(logger, filepath);*/
-
         }
     }
-
-   /* public void attachscreenshot(ExtentTest logg, String filepa) {
-        try {
-            logg.addScreenCaptureFromPath(filepa);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-    public void takescreenshot(WebDriver driver,String filepath) {
-        File destpath = new File(filepath);
-        try {
-            FileUtils.copyFile(((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE), destpath);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }*/
 
     @AfterMethod
     public void aftermethod(ITestResult iTestResult) {
@@ -127,6 +107,13 @@ public class LoginPage {
             Markup m = MarkupHelper.createLabel(logtext, ExtentColor.RED);
             logger.log(Status.FAIL, m);
         } else if (iTestResult.getStatus() == iTestResult.SUCCESS) {
+
+            String pathe = takescreenshot(iTestResult.getMethod().getMethodName());
+            try {
+                logger.pass("Screenshot of pass:", MediaEntityBuilder.createScreenCaptureFromPath(takescreenshot(methodname)).build());
+            } catch (Exception e) {
+                logger.pass("Test pass,  attached screenshot");
+            }
             String logtexts = "<br>Test Method :" + methodname + " Passed</br>";
             Markup m = MarkupHelper.createLabel(logtexts, ExtentColor.GREEN);
             logger.log(Status.PASS, m);

@@ -2,8 +2,6 @@ package PageScript;
 
 import Base.BaseUtill;
 import PageObjects.LoginPageObjects;
-import Reports.ExtentReportManager;
-import com.aventstack.extentreports.ExtentTest;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 public class BaseSteps  {

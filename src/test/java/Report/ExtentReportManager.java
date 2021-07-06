@@ -1,19 +1,21 @@
-package Reports;
+package Report;
 
 import com.aventstack.extentreports.ExtentReports;
 import com.aventstack.extentreports.ExtentTest;
-import com.aventstack.extentreports.MediaEntityBuilder;
+
+import com.aventstack.extentreports.Status;
+import com.aventstack.extentreports.markuputils.ExtentColor;
+import com.aventstack.extentreports.markuputils.MarkupHelper;
 import com.aventstack.extentreports.reporter.ExtentKlovReporter;
+
 
 import org.junit.BeforeClass;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -22,20 +24,18 @@ import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
 
-import javax.imageio.ImageIO;
-
 public class ExtentReportManager {
 
 
     private static Map<Integer, ExtentTest> extentTestMap = new HashMap<>();
     public static ExtentTest logger;
     public static ExtentReports extent = new ExtentReports();
-  //  static String dest;
+
 
     @BeforeClass
     @SuppressWarnings("Duplicates")
     public static ExtentReports report() {
-        String projectName = "PAW9";
+        String projectName = "PAW12";
         try {
 
             ExtentKlovReporter klovReporter = new ExtentKlovReporter(projectName);
@@ -47,10 +47,41 @@ public class ExtentReportManager {
             extent.setSystemInfo("Architecture", System.getProperty("os.arch"));
             extent.attachReporter(klovReporter);
 
+
+            // directory where output is to be printed
+            /*ExtentAventReporter avent = new ExtentAventReporter("user/build/name/");
+            ExtentReports extent = new ExtentReports();
+            extent.attachReporter(avent);*/
         } catch (Exception e) {
             System.out.println(e);
         }
         return extent;
+
+    }
+
+    @SuppressWarnings("Duplicates")
+    public static void testStepHandle(String teststatus, WebDriver driver, ExtentTest test, Throwable throwable) {
+        switch (teststatus) {
+            case "FAIL":
+                logger.fail(MarkupHelper.createLabel(throwable.getMessage(), ExtentColor.RED));
+                System.out.println(": i want to know: " + throwable);
+                try {
+                    String base64Screenshot = "data:image/png;base64," + ((TakesScreenshot) driver).getScreenshotAs(OutputType.BASE64);
+                    logger.log(Status.FAIL, "Screenshot of failed test Case", logger.addScreenCaptureFromBase64String(base64Screenshot).getModel().getMedia().get(0));
+                } catch (Exception e) {
+                    logger.fail("Test failed, cannot attach screenshot");
+                }
+                break;
+
+            case "PASS":
+                logger.pass(MarkupHelper.createLabel("Test Case is Passed : ", ExtentColor.GREEN));
+                break;
+            case "SKIP":
+                logger.skip(MarkupHelper.createLabel("Test Case is Skipped : ", ExtentColor.YELLOW));
+                break;
+            default:
+                break;
+        }
     }
 
     public static String captureScreenShot(WebDriver driver) throws IOException {
@@ -62,17 +93,6 @@ public class ExtentReportManager {
         File target = new File(dest);
         FileUtils.copyFile(src, target);
         return dest;
-    }
-
-    public static String takeScreenShot( WebDriver driver) throws Exception
-    {
-        File screen = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
-        BufferedImage img = ImageIO.read(screen);
-        File filetest = Paths.get(".").toAbsolutePath().normalize().toFile();
-        ImageIO.write(img, "png", new File(filetest + "\\Screenshots\\" + " - "  + ".png"));
-        logger.info("Details of " +MediaEntityBuilder.createScreenCaptureFromPath(System.getProperty("user.dir") + "\\Screenshots\\"  + " - "  + ".png").build());
-
-        return null;
     }
 
     private static String getcurrentdateandtime() {

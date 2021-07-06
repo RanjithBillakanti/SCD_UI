@@ -1,53 +1,45 @@
 package Listeners;
 
-import Reports.ExtentReportManager;
+import Report.ExtentReportManager;
 import Utilities.Log;
-import com.aventstack.extentreports.ExtentReports;
-import com.aventstack.extentreports.MediaEntityBuilder;
-import com.aventstack.extentreports.Status;
-
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Objects;
 
-import com.aventstack.extentreports.markuputils.ExtentColor;
-import com.aventstack.extentreports.markuputils.Markup;
-import com.aventstack.extentreports.markuputils.MarkupHelper;
-import org.openqa.selenium.OutputType;
-import org.openqa.selenium.TakesScreenshot;
+import com.aventstack.extentreports.ExtentReports;
+import com.aventstack.extentreports.ExtentTest;
 import org.openqa.selenium.WebDriver;
 import org.testng.ITestContext;
 import org.testng.ITestListener;
 import org.testng.ITestResult;
-import Base.BaseUtill;
-import com.aventstack.extentreports.ExtentTest;
 
-import static Reports.ExtentReportManager.*;
-
-public class TestListener extends BaseUtill implements ITestListener {
+public class TestListener extends ExtentReportManager implements ITestListener {
 
     private WebDriver driver;
-    // private static ExtentReports extent;
-
+    ExtentReportManager ext;
+    private static ExtentReports extent;
+    public static ExtentTest logger=ExtentReportManager.logger;
 
     public TestListener() throws IOException {
+
     }
 
     private static String getTestMethodName(ITestResult iTestResult) {
         return iTestResult.getMethod().getConstructorOrMethod().getName();
     }
-
+    public static void setExtent(ExtentReports extent) {
+        TestListener.extent = extent;
+    }
     @Override
     public void onStart(ITestContext iTestContext) {
         Log.info("I am in onStart method " + iTestContext.getName());
         iTestContext.setAttribute("WebDriver", this.driver);
         extent = ExtentReportManager.report();
+
+
     }
 
     @Override
     public void onFinish(ITestContext iTestContext) {
         Log.info("I am in onFinish method " + iTestContext.getName());
-        //Do tier down operations for ExtentReports reporting!
         extent.flush();
     }
 
@@ -59,42 +51,55 @@ public class TestListener extends BaseUtill implements ITestListener {
     @Override
     public void onTestSuccess(ITestResult iTestResult) {
         Log.info(getTestMethodName(iTestResult) + " test is succeed.");
-        //ExtentReports log operation for passed tests.
-        // extentReportManager.logger.log(Status.PASS, "Test passed");
     }
 
     @Override
     public void onTestFailure(ITestResult iTestResult) {
 
+       /* String methodname = iTestResult.getMethod().getMethodName();
 
-    }
-
-    //Get driver from BaseTest and assign to local webdriver variable.
-    //  Object testClass = iTestResult.getInstance();
-       /* try {
-            ExtentReportManager.captureScreenShot(driver,logger);
-
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (iTestResult.getStatus() == iTestResult.FAILURE) {
+            String exceptionmessage = Arrays.toString(iTestResult.getThrowable().getStackTrace());
+            
+            logger.fail("Failure" + exceptionmessage.replaceAll(",", "<br>"));
+           *//* String path = takescreenshot(iTestResult.getMethod().getMethodName());
+            System.out.println("Printing path :" + path);*//*
+            try {
+                String base64Screenshot = "data:image/png;base64," + ((TakesScreenshot) driver).getScreenshotAs(OutputType.BASE64);
+                //   logger.fail(MediaEntityBuilder.createScreenCaptureFromPath(base64Screenshot).build());
+                logger.log(Status.FAIL, "Test Failed", logger.addScreenCaptureFromBase64String(base64Screenshot).getModel().getMedia().get(0));
+            } catch (Exception e) {
+                logger.fail("Test failed, cannot attach screenshot");
+            }
+            *//*Object testClass = iTestResult.getInstance();
+            String base64Screenshot = "data:image/png;base64," + ((TakesScreenshot) driver).getScreenshotAs(OutputType.BASE64);
+            logger.log(Status.FAIL, "Test Failed", logger.addScreenCaptureFromBase64String(base64Screenshot).getModel().getMedia().get(0));*//*
+            String logtext = "<br>Test Method" + methodname + "failed</br>";
+            Markup m = MarkupHelper.createLabel(logtext, ExtentColor.RED);
+            logger.log(Status.FAIL, m);
+        } else if (iTestResult.getStatus() == iTestResult.SUCCESS) {
+            String logtexts = "<br>Test Method :" + methodname + " Passed</br>";
+            Markup m = MarkupHelper.createLabel(logtexts, ExtentColor.GREEN);
+            logger.log(Status.PASS, m);
+        } else if (iTestResult.getStatus() == iTestResult.SKIP) {
+            String logtext = "<br>Test Method" + methodname + "Skipped</br>";
+            Markup m = MarkupHelper.createLabel(logtext, ExtentColor.YELLOW);
+            logger.log(Status.SKIP, m);
         }*/
-       /* WebDriver driver = ((BaseUtill) testClass).getDriver();
-        //Take base64Screenshot screenshot for extent reports
-        String base64Screenshot =
-                "data:image/png;base64," + ((TakesScreenshot) Objects.requireNonNull(driver)).getScreenshotAs(OutputType.BASE64);
-        //ExtentReports log and screenshot operations for failed tests.
-        getExtentTest.log(Status.FAIL, "Test Failed",
-                getTest().addScreenCaptureFromBase64String(base64Screenshot).getModel().getMedia().get(0));*/
-
+    }
 
     @Override
     public void onTestSkipped(ITestResult iTestResult) {
         Log.info(getTestMethodName(iTestResult) + " test is skipped.");
         //ExtentReports log operation for skipped tests.
-        logger.log(Status.SKIP, "Test Skipped");
+//        logger.log(Status.SKIP, "Test Skipped");
     }
 
     @Override
     public void onTestFailedButWithinSuccessPercentage(ITestResult iTestResult) {
         Log.info("Test failed but it is in defined success ratio " + getTestMethodName(iTestResult));
     }
+
+
+
 }
